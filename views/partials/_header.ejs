@@ -1,9 +1,20 @@
   <body>
     <header>
-      <form method = post action = "urls/login">
-        <input name = "username">
-        <button>Submit</button>
+    <% if(username) { %>
+      <h2><%= username %></h2>
+      <form method = 'POST' action = "/logout">
+        <p>
+          <button>Log out</button>
+        </p>
       </form>
+      <% } else { %>
+      <form method = 'POST' action = "/login">
+        <p>
+          <input name = "username">
+          <button>Login</button>
+        </p>
+      </form>
+      <% } %>
     </header>
   </body>
 
