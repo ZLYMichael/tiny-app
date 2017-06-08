@@ -32,6 +32,7 @@ app.get("/urls", (req, res) => {
 });
 
 
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new", {username: req.cookies['username']});
 });
@@ -44,6 +45,10 @@ app.get("/urls/:id", (req, res) => {
     shortURL: shortURL,
     longURL: urlDatabase[shortURL]
   };
+
+app.get("/hello", (req, res) => {
+  res.end("<html><body>Hello <b> World</b></body></html>\n");
+});
   res.render("urls_show", templateVars);
 });
 
@@ -52,13 +57,16 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 })
 
-app.get("/hello", (req, res) => {
-  res.end("<html><body>Hello <b> World</b></body></html>\n");
-});
-
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+})
+
+app.get('/register', (req, res) => {
+  res.render('register');
+})
+
+app.post('/register', (req, res) => {
+
 })
 
 app.post("/login", (req, res) => {
