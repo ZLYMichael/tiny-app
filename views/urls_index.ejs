@@ -1,4 +1,4 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <title>TinyApp</title>
@@ -6,7 +6,8 @@
 
   <body>
   <% include ./partials/_header %>
-    <h2> Urls </h2>
+  <h2> Urls </h2>
+    <h2>
       <ul>
         <% for(var url in urls) { %>
           <li><%=url%> <%= urls[url]%></li>
@@ -16,7 +17,8 @@
           </form>
         <% } %>
       </ul>
-    <h1>
+    </h2>
+  <h1>
       <a href="urls/new"><button> Add your URL</button></a>
     </h1>
   </body>
