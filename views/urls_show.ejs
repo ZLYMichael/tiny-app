@@ -8,9 +8,13 @@
       <% include ./partials/_header %>
       <h2> Shortened URL </h2>
         <ul>
-            <li><%= shortURL %> : <%= longURL %></li>
-            <a href="/u/<%= shortURL %>"><button> Click Here </button></a>
+            <li>
+              <a href="/u/<%= shortURL %>"><%= shortURL %></a>
+              =>  <%= longURL %>
+            </li>
+
         </ul>
+        <% if (user) { %>
       <form action="/urls/<%= shortURL %>" method = "post">
         <h2> Edit URL </h2>
           <p>
@@ -19,6 +23,8 @@
             <button> Update URL </button>
           </p>
       </form>
+      <% } %>
+      <a href ='/urls'><button>Back to home</button></a>
   </body>
 
 </html>

@@ -1,8 +1,8 @@
-var express = require('express');
-var app = express();
-var PORT = process.env.PORT || 8080;
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 8080;
 const bodyParser =require("body-parser");
-var cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser')
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -12,10 +12,10 @@ const users = {
   "userRandomID": {
     name: "randomName",
     id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    email: "kek@kek.kek",
+    password: "kek"
   },
-  "user2RandomID":{
+  "user2RandomID": {
     name: "random2Name2",
     id: "user2randomID",
     email: "user2random@example.com",
@@ -23,16 +23,24 @@ const users = {
   }
 };
 
-var urlDatabase = {
-  "b2xVn2": "http://lighthouselabs.ca",
-  "9sm5xK": "http://google.com"
+const urlDatabase = {
+  "b2xVn2":{
+    id: "b2xVn2",
+    website: "http://lighthouselabs.ca",
+    userID: "userRandomID"
+  },
+  "9sm5xK":{
+    id: "9sm5xK",
+    website: "http://google.com",
+    userID: "user2randomID"
+  }
 };
 
 
 function generateRandomString() {
-  var random = ""
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for(var i = 0; i < 6; i++) {
+  let random = "";
+  let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for(let i = 0; i < 6; i++) {
     random += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return random;
@@ -40,9 +48,15 @@ function generateRandomString() {
 
 
 app.get("/urls", (req, res) => {
+  let urls = {};
+  for(let url in urlDatabase) {
+    if (urlDatabase[url].userID === req.cookies["user_id"]) {
+      urls[url] = urlDatabase[url]
+    }
+  }
   let templateVars = {
-    urls: urlDatabase,
-    user_id: req.cookies["user_id"]
+    urls: urls,
+    user: users[req.cookies["user_id"]]
   };
 
   res.render("urls_index", templateVars);
@@ -51,59 +65,59 @@ app.get("/urls", (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", {user_id: req.cookies['user_id']});
+  if(req.cookies["user_id"]) {
+    res.render("urls_new", {user: users[req.cookies["user_id"]]});
+  } else {
+    res.redirect('/register');
+  }
 });
 
 
 app.get("/urls/:id", (req, res) => {
   let shortURL = req.params.id
   let templateVars = {
-    user_id: req.cookies["user"],
+    user: users[req.cookies["user_id"]],
     shortURL: shortURL,
-    longURL: urlDatabase[shortURL]
+    longURL: urlDatabase[shortURL].website
   };
+  res.render('urls_show', templateVars);
+});
 
-app.get("/hello", (req, res) => {
-  res.end("<html><body>Hello <b> World</b></body></html>\n");
-});
-  res.render("urls_show", templateVars);
-});
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL].website;
   res.redirect(longURL);
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
+
 
 app.get('/register', (req, res) => {
   res.render('register');
 });
 
+
 app.get('/login', (req, res) => {
-  res.render('login')
+  res.render('login');
 });
+
 
 app.post('/register', (req, res) => {
   if(req.body.name === "" || req.body.email === "" || req.body.password === "") {
     return res.status(400).end(`error 400
-      Missing email and or password`)
+      Missing email and or password`);
   }
 
-  const randomGen = generateRandomString()
+  const randomGen = generateRandomString();
   users[randomGen] = {
     name: req.body.name,
     email: req.body.email,
     id: randomGen,
     password: req.body.password
-  }
-  console.log(users)
-  res.cookie("user_id", randomGen)
-  res.redirect("/urls")
-
+  };
+  res.cookie("user_id", randomGen);
+  res.redirect("/urls");
 });
+
 
 app.post("/login", (req, res) => {
   let user = null;
@@ -114,36 +128,48 @@ app.post("/login", (req, res) => {
   }
 
   if(user && user.password === req.body.password) {
-    res.cookie("user_id", user.name);
+    res.cookie("user_id", user.id);
     res.redirect('/urls');
   } else {
-    res.status(401).send("Incorrect credentials")
+    res.status(401).send("Incorrect credentials");
   }
-
 });
 
+
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id')
+  res.clearCookie("user_id");
   res.redirect('/urls');
 })
 
+
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  urlDatabase[randomGen] = req.body.longURL
+  let randomGen = generateRandomString();
+  urlDatabase[randomGen] = {
+    id: randomGen,
+    website: req.body.longURL,
+    userID: req.cookies["user_id"]
+  }
   res.redirect(`/urls/${randomGen}`);
 });
 
+
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
+  console.log(users)
+  if(req.cookies["user_id"] !== urlDatabase[req.params.shortURL].userID){
+    res.status(401).send("This does not belong to you!")
+  } else {
+    delete urlDatabase[req.params.shortURL]
+  }
   res.redirect('/urls');
 });
 
+
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL
+  urlDatabase[req.params.id].website = req.body.longURL;
   res.redirect(`/urls/${req.params.id}`);
 });
 
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`)
+  console.log(`Example app listening on port ${PORT}`);
 });
