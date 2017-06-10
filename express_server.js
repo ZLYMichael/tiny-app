@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
-var cookieSession = require('cookie-session')
+var cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -10,7 +10,7 @@ app.use(cookieSession({
   keys: ['key'],
 
   maxAge: 24 * 60 * 60 * 1000
-}))
+}));
 app.set("view engine", "ejs");
 
 const users = {
@@ -107,9 +107,10 @@ app.get('/login', (req, res) => {
 
 
 app.post('/register', (req, res) => {
-  if(req.body.name === "" || req.body.email === "" || req.body.password === "") {
+  for(var usr in users);
+  if(req.body.name === "" || req.body.email === "" || req.body.password === "" || req.body.email === users[usr].email) {
     return res.status(400).end(`error 400
-      Missing email and or password`);
+      Missing either Email/Password or Email already in use`);
   }
 
   const randomGen = generateRandomString();
@@ -144,10 +145,9 @@ app.post("/login", (req, res) => {
 
 
 app.post('/logout', (req, res) => {
-  console.log(users)
   req.session = null;
   res.redirect('/urls');
-})
+});
 
 
 app.post("/urls", (req, res) => {
@@ -157,13 +157,16 @@ app.post("/urls", (req, res) => {
     website: req.body.longURL,
     userID: req.session.user_id
   }
+  if (urlDatabase[randomGen].website.length <= 3) {
+    res.status(401).send("URL Too Short");
+  }
   res.redirect(`/urls/${randomGen}`);
 });
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   if(req.session.user_id !== urlDatabase[req.params.shortURL].userID){
-    res.status(401).send("This does not belong to you!")
+    res.status(401).send("This does not belong to you!");
   } else {
     delete urlDatabase[req.params.shortURL]
   }
