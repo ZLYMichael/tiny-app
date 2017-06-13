@@ -1,9 +1,11 @@
+// Dependencies
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 var cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+//middle ware
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
@@ -11,8 +13,10 @@ app.use(cookieSession({
 
   maxAge: 24 * 60 * 60 * 1000
 }));
+
 app.set("view engine", "ejs");
 
+//example database
 const users = {
   "userRandomID": {
     name: "randomName",
@@ -51,7 +55,7 @@ function generateRandomString() {
   return random;
 }
 
-
+//shortened url belongs to the user that created it
 app.get("/urls", (req, res) => {
   let urls = {};
   for(let url in urlDatabase) {
@@ -68,7 +72,7 @@ app.get("/urls", (req, res) => {
 });
 
 
-
+//if user is not logged in redirect them to log in
 app.get("/urls/new", (req, res) => {
   if(req.session.user_id) {
     res.render("urls_new", {user: users[req.session.user_id]});
@@ -88,7 +92,7 @@ app.get("/urls/:id", (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-
+//redirects user to the long url site
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL].website;
   res.redirect(longURL);
@@ -105,7 +109,9 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-
+//registration process
+//generates new unique id for each user
+//hashes password
 app.post('/register', (req, res) => {
   for(var usr in users);
   if(req.body.name === "" || req.body.email === "" || req.body.password === "" || req.body.email === users[usr].email) {
@@ -125,7 +131,7 @@ app.post('/register', (req, res) => {
   res.redirect("/urls");
 });
 
-
+//login process
 app.post("/login", (req, res) => {
   if(!req.body.email || !req.body.password) {
     res.status(401).send("Incorrect credentials");
@@ -149,7 +155,8 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
-
+//shorten an new URL
+//if the url is too short it will return a 401
 app.post("/urls", (req, res) => {
   let randomGen = generateRandomString();
   urlDatabase[randomGen] = {
@@ -163,7 +170,8 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randomGen}`);
 });
 
-
+//delete a post
+//checks if user has sufficient permissions to delete a post
 app.post("/urls/:shortURL/delete", (req, res) => {
   if(req.session.user_id !== urlDatabase[req.params.shortURL].userID){
     res.status(401).send("This does not belong to you!");
@@ -179,7 +187,7 @@ app.post("/urls/:id", (req, res) => {
   res.redirect(`/urls/${req.params.id}`);
 });
 
-
+//port
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
