@@ -137,7 +137,6 @@ app.post("/login", (req, res) => {
     res.status(401).send("Incorrect credentials");
   }
   for(let value in users) {
-    // var user = users[value];
     if(users[value].email === req.body.email) {
       if (bcrypt.compareSync(req.body.password, users[value].password)) {
         req.session.user_id = users[value].id;
